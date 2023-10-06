@@ -9,7 +9,7 @@ import openai
 
 from aider import __version__, models
 from aider.coders import Coder
-from aider.io import InputOutput
+from aider.io import InputOutput, ProgrammaticInputOutput
 from aider.repo import GitRepo
 from aider.versioncheck import check_version
 
@@ -262,6 +262,12 @@ def main(argv=None, input=None, output=None, force_git_root=None):
         help="Set the color for user input (default: #00cc00)",
     )
     output_group.add_argument(
+        "--programmatic-access",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Enable/disable programmatic access to start aider process without window"
+    )
+    output_group.add_argument(
         "--tool-output-color",
         default=None,
         help="Set the color for tool output (default: None)",
@@ -388,18 +394,32 @@ def main(argv=None, input=None, output=None, force_git_root=None):
         args.assistant_output_color = "blue"
         args.code_theme = "default"
 
-    io = InputOutput(
-        args.pretty,
-        args.yes,
-        args.input_history_file,
-        args.chat_history_file,
-        input=input,
-        output=output,
-        user_input_color=args.user_input_color,
-        tool_output_color=args.tool_output_color,
-        tool_error_color=args.tool_error_color,
-        dry_run=args.dry_run,
-    )
+    if args.programmatic_access:
+        io = ProgrammaticInputOutput(
+            args.pretty,
+            args.yes,
+            args.input_history_file,
+            args.chat_history_file,
+            input=input,
+            output=output,
+            user_input_color=args.user_input_color,
+            tool_output_color=args.tool_output_color,
+            tool_error_color=args.tool_error_color,
+            dry_run=args.dry_run,
+        )
+    else:
+        io = InputOutput(
+            args.pretty,
+            args.yes,
+            args.input_history_file,
+            args.chat_history_file,
+            input=input,
+            output=output,
+            user_input_color=args.user_input_color,
+            tool_output_color=args.tool_output_color,
+            tool_error_color=args.tool_error_color,
+            dry_run=args.dry_run,
+        )
 
     fnames = [str(Path(fn).resolve()) for fn in args.files]
     if len(args.files) > 1:

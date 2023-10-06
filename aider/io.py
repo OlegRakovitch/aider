@@ -184,36 +184,7 @@ class InputOutput:
             style = None
 
         while True:
-            completer_instance = AutoCompleter(
-                root, rel_fnames, addable_rel_fnames, commands, self.encoding
-            )
-            if multiline_input:
-                show = ". "
-
-            session_kwargs = {
-                "message": show,
-                "completer": completer_instance,
-                "reserve_space_for_menu": 4,
-                "complete_style": CompleteStyle.MULTI_COLUMN,
-                "input": self.input,
-                "output": self.output,
-                "lexer": PygmentsLexer(MarkdownLexer),
-            }
-            if style:
-                session_kwargs["style"] = style
-
-            if self.input_history_file is not None:
-                session_kwargs["history"] = FileHistory(self.input_history_file)
-
-            kb = KeyBindings()
-
-            @kb.add("escape", "c-m", eager=True)
-            def _(event):
-                event.current_buffer.insert_text("\n")
-
-            session = PromptSession(key_bindings=kb, **session_kwargs)
-            line = session.prompt()
-
+            line = self.read_line(root, rel_fnames, addable_rel_fnames, commands, multiline_input, show, style)
             if line and line[0] == "{" and not multiline_input:
                 multiline_input = True
                 inp += line[1:] + "\n"
@@ -230,6 +201,37 @@ class InputOutput:
         print()
         self.user_input(inp)
         return inp
+
+    def read_line(self, root, rel_fnames, addable_rel_fnames, commands, multiline_input, show, style):
+        completer_instance = AutoCompleter(
+            root, rel_fnames, addable_rel_fnames, commands, self.encoding
+        )
+        if multiline_input:
+            show = ". "
+
+        session_kwargs = {
+            "message": show,
+            "completer": completer_instance,
+            "reserve_space_for_menu": 4,
+            "complete_style": CompleteStyle.MULTI_COLUMN,
+            "input": self.input,
+            "output": self.output,
+            "lexer": PygmentsLexer(MarkdownLexer),
+        }
+        if style:
+            session_kwargs["style"] = style
+
+        if self.input_history_file is not None:
+            session_kwargs["history"] = FileHistory(self.input_history_file)
+
+        kb = KeyBindings()
+
+        @kb.add("escape", "c-m", eager=True)
+        def _(event):
+            event.current_buffer.insert_text("\n")
+
+        session = PromptSession(key_bindings=kb, **session_kwargs)
+        return session.prompt()
 
     def add_to_input_history(self, inp):
         if not self.input_history_file:
@@ -336,3 +338,7 @@ class InputOutput:
         if self.chat_history_file is not None:
             with self.chat_history_file.open("a", encoding=self.encoding) as f:
                 f.write(text)
+
+class ProgrammaticInputOutput(InputOutput):
+    def read_line(self, root, rel_fnames, addable_rel_fnames, commands, multiline_input, show, style):
+        return input("### READY FOR INPUT ###")
