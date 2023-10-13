@@ -341,4 +341,5 @@ class InputOutput:
 
 class ProgrammaticInputOutput(InputOutput):
     def read_line(self, root, rel_fnames, addable_rel_fnames, commands, multiline_input, show, style):
-        return input("### READY FOR INPUT ###")
+        self.tool_output("### END OF OUTPUT ###")
+        return input()
